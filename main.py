@@ -1,6 +1,11 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, SubmitField
+from wtforms.validators import DataRequired
+
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'SECRET_KEY'
 
 news = [{'title': 'Удивительное событие в школе',
          'text': 'Вчера в местной школе произошло удивительное событие - все '
@@ -37,6 +42,31 @@ def news_detail(id):
     return render_template('news_detail.html',
                            title=title,
                            text=text)
+
+
+
+class FeedbackForm(FlaskForm):
+    name = StringField('Название',
+                       validators=[DataRequired(message="Поле не должно быть пустым")])
+    text = TextAreaField('Текст',
+                         validators=[DataRequired(message="Поле не должно быть пустым")])
+    submit = SubmitField('Добавить')
+    a={'title':str(name),'text':str(text)}
+    news.append(a)
+
+
+@app.route('/add_news/', methods=['GET', 'POST'])
+def add_news():
+    form = FeedbackForm()
+    if form.validate_on_submit():
+        name = form.name.data
+        text = form.text.data
+        print(name, text)
+        return redirect('/')
+    return render_template('add_news.html', form=form)
+
+
+
 
 
 if __name__ == '__main__':
